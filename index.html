@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aulas en Abanico - Goethe Schule</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Login -->
+  <div id="loginContainer" class="container visible">
+    <div class="login-header">
+      <h1>🏫 Goethe Schule</h1>
+      <h2>Sistema de Gestión de Aulas</h2>
+    </div>
+    <div class="login-form">
+      <input type="text" id="usuario" placeholder="Usuario" />
+      <input type="password" id="clave" placeholder="Contraseña" />
+      <button onclick="login()" class="btn-primary">
+        <span>🔐</span> Iniciar Sesión
+      </button>
+      <p id="error" class="error-message"></p>
+    </div>
+  </div>
+
+  <!-- Selección de Islas -->
+  <div id="islasContainer" class="container">
+    <div class="header-section">
+      <h2>🏝️ Selecciona una Isla</h2>
+      <div class="user-info">
+        <span id="userWelcome"></span>
+        <button onclick="logout()" class="btn-logout">🚪 Cerrar Sesión</button>
+      </div>
+    </div>
+    <div id="islas" class="grid-islas"></div>
+  </div>
+
+  <!-- Mapa de Aulas -->
+  <div id="mapaContainer" class="container">
+    <div class="header-section">
+      <h2 id="islaNombre">Isla</h2>
+      <div class="controls">
+        <div id="teacherControls" class="teacher-controls" style="display: none;">
+          <button onclick="toggleAllAulas('abierta')" class="btn-success">
+            🟢 Abrir Todas
+          </button>
+          <button onclick="toggleAllAulas('cerrada')" class="btn-danger">
+            🔴 Cerrar Todas
+          </button>
+        </div>
+        <button class="btn-secondary back-btn" onclick="volverIslas()">
+          ⬅️ Volver a Islas
+        </button>
+      </div>
+    </div>
+    <div class="mapa-aulas" id="aulas"></div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
