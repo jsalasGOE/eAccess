@@ -6,8 +6,95 @@
   <title>ClassPass - Goethe Schule</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+/* Modal overlay */
+.ea-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); display:flex;
+  align-items:center; justify-content:center; z-index:9999;
+}
+.ea-card {
+  background: white; border-radius:12px; padding:20px; width: 92%; max-width:480px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3); font-family: Arial, sans-serif;
+}
+.ea-card h2 { margin:0 0 8px 0; font-size:1.25rem; }
+.ea-row { margin:8px 0; display:flex; flex-direction:column; }
+.ea-row label { font-size:0.85rem; margin-bottom:4px; }
+.ea-row input, .ea-row textarea, .ea-row select {
+  padding:8px; border-radius:6px; border:1px solid #ccc; font-size:1rem;
+}
+.ea-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+.ea-btn { padding:8px 12px; border-radius:8px; border: none; cursor:pointer; }
+.ea-btn.primary { background:#2b6cb0; color:white; }
+.ea-btn.ghost { background:transparent; border:1px solid #aaa; }
+.ea-small { font-size:0.85rem; color:#555; }
+.ea-hidden { display:none !important; }
+</style>
 </head>
 <body>
+  <div id="ea-signup-overlay" class="ea-overlay">
+  <div class="ea-card" role="dialog" aria-modal="true" aria-labelledby="ea-signup-title">
+    <h2 id="ea-signup-title">Inscribite como Beta-tester</h2>
+    <p class="ea-small">Antes de usar la aplicación, completá este formulario para participar del beta.</p>
+
+    <div class="ea-row">
+      <label>Nombre</label>
+      <input id="ea-nombre" type="text" placeholder="Nombre">
+    </div>
+    <div class="ea-row">
+      <label>Apellido</label>
+      <input id="ea-apellido" type="text" placeholder="Apellido">
+    </div>
+    <div class="ea-row">
+      <label>Correo electrónico</label>
+      <input id="ea-email" type="email" placeholder="tu@ejemplo.com">
+    </div>
+
+    <div class="ea-row">
+      <label>Comentarios (opcional)</label>
+      <textarea id="ea-extra" rows="3" placeholder="¿desde qué aula, observaciones... (opcional)?"></textarea>
+    </div>
+
+    <div class="ea-actions">
+      <button id="ea-skip" class="ea-btn ghost">Cerrar</button>
+      <button id="ea-submit-signup" class="ea-btn primary">Enviar e ingresar</button>
+    </div>
+
+    <p class="ea-small" style="margin-top:8px">Al enviar, aceptás participar como beta-tester. Podés cerrar sin enviar si no querés.</p>
+  </div>
+</div>
+
+<!-- Feedback overlay (aparece al cerrar sesión) -->
+<div id="ea-feedback-overlay" class="ea-overlay ea-hidden">
+  <div class="ea-card" role="dialog" aria-modal="true" aria-labelledby="ea-feedback-title">
+    <h2 id="ea-feedback-title">Feedback de la prueba</h2>
+    <p class="ea-small">Gracias por probar la aplicación. Contanos tu experiencia.</p>
+
+    <div class="ea-row">
+      <label>Correo (opcional)</label>
+      <input id="fb-email" type="email" placeholder="tu@ejemplo.com">
+    </div>
+    <div class="ea-row">
+      <label>Puntuación (1-5)</label>
+      <select id="fb-rating">
+        <option value="">--</option>
+        <option value="1">1 — Muy mala</option>
+        <option value="2">2 — Mala</option>
+        <option value="3">3 — Regular</option>
+        <option value="4">4 — Buena</option>
+        <option value="5">5 — Excelente</option>
+      </select>
+    </div>
+    <div class="ea-row">
+      <label>Comentarios</label>
+      <textarea id="fb-comments" rows="4" placeholder="Qué funcionó, qué no, sugerencias..."></textarea>
+    </div>
+
+    <div class="ea-actions">
+      <button id="fb-skip" class="ea-btn ghost">Saltar</button>
+      <button id="fb-submit" class="ea-btn primary">Enviar feedback</button>
+    </div>
+  </div>
+</div>
   <!-- Login -->
   <div id="loginContainer" class="container visible">
     <div class="login-header">
@@ -61,5 +148,151 @@
   <div id="toast" class="toast"></div>
 
   <script src="script.js"></script>
+  <script>
+(function(){
+  // URL del Web App de Google Apps Script (reemplazar por la tuya)
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbxUnoXz0qvGpOv0dypgvMkUilsiUbSvEpkkJVDunAqDxxLnETudHUZDDCrrU0A1H1qUuA/exec"; // <- reemplaza
+
+  // Config: si true, solo pedir inscripción una vez por navegador (localStorage)
+  const SHOW_SIGNUP_ONCE = true;
+
+  // Elementos
+  const overlay = document.getElementById('ea-signup-overlay');
+  const eNombre = document.getElementById('ea-nombre');
+  const eApellido = document.getElementById('ea-apellido');
+  const eEmail = document.getElementById('ea-email');
+  const eExtra = document.getElementById('ea-extra');
+  const submitBtn = document.getElementById('ea-submit-signup');
+  const skipBtn = document.getElementById('ea-skip');
+
+  const fbOverlay = document.getElementById('ea-feedback-overlay');
+  const fbEmail = document.getElementById('fb-email');
+  const fbRating = document.getElementById('fb-rating');
+  const fbComments = document.getElementById('fb-comments');
+  const fbSubmit = document.getElementById('fb-submit');
+  const fbSkip = document.getElementById('fb-skip');
+
+  // Mostrar overlay al cargar (si corresponde)
+  function showSignupIfNeeded() {
+    const signed = localStorage.getItem('ea_beta_signed');
+    if (SHOW_SIGNUP_ONCE && signed === '1') {
+      overlay.style.display = 'none';
+      return;
+    }
+    overlay.style.display = 'flex';
+  }
+
+  showSignupIfNeeded();
+
+  // Helper: POST a GAS
+  async function postToGAS(type, data) {
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({type: type, data: data})
+      });
+      const j = await res.json();
+      return j;
+    } catch (err) {
+      console.error('Error enviando a GAS', err);
+      throw err;
+    }
+  }
+
+  // Envío de signup
+  submitBtn.addEventListener('click', async function(){
+    const nombre = eNombre.value.trim();
+    const apellido = eApellido.value.trim();
+    const email = eEmail.value.trim();
+    const extra = eExtra.value.trim();
+    if (!nombre || !apellido || !email) {
+      alert('Por favor completá nombre, apellido y correo.');
+      return;
+    }
+    submitBtn.disabled = true;
+    try {
+      await postToGAS('signup', {nombre, apellido, email, extra});
+      if (SHOW_SIGNUP_ONCE) localStorage.setItem('ea_beta_signed','1');
+      overlay.style.display = 'none';
+      // Si querés, mostrar un pequeño aviso de éxito
+      console.log('Signup enviado');
+    } catch (err) {
+      alert('Error al enviar. Reintentá o contactá al administrador.');
+      submitBtn.disabled = false;
+    }
+  });
+
+  // Opción: cerrar sin enviar
+  skipBtn.addEventListener('click', function(){
+    overlay.style.display = 'none';
+  });
+
+  // --- Feedback: abrir overlay cuando el usuario cierre sesión ---
+  // Detectar botón "cerrar sesión": por defecto busco id="logoutBtn". 
+  // Si tu botón tiene otro id/clase, modificá la querySelector.
+  function attachLogoutHook() {
+    const logout = document.getElementById('logoutBtn') || document.querySelector('.logout') || null;
+    if (!logout) {
+      // Si no existe aún (render más tarde), escucha clics globales y detecta por texto
+      document.addEventListener('click', function(ev){
+        const t = ev.target;
+        if (!t) return;
+        // Si el botón contiene "cerrar sesión" en texto, interceptamos
+        if (/cerrar sesión|cerrar sesión/i.test(t.innerText || '')) {
+          ev.preventDefault();
+          showFeedbackOverlay().then(() => {
+            // luego de manejar feedback, si el botón tenía comportamiento original, simularlo.
+            // Si tu app necesita que se ejecute logout original, llamá manualmente a la función aquí.
+            // Por defecto, recargamos la página
+            window.location.href = '/'; 
+          });
+        }
+      }, {capture:true});
+      return;
+    }
+    logout.addEventListener('click', function(ev){
+      ev.preventDefault();
+      showFeedbackOverlay().then(() => {
+        // después de enviar / saltar feedback, hacer el logout real:
+        // si tu app tiene una función logout() que manejas, llamala aquí. Si el botón hace post, redirige, etc.
+        // Por defecto, recarga:
+        window.location.href = '/';
+      });
+    });
+  }
+
+  attachLogoutHook();
+
+  async function showFeedbackOverlay() {
+    fbOverlay.classList.remove('ea-hidden');
+    return new Promise((resolve) => {
+      fbSubmit.onclick = async function(){
+        fbSubmit.disabled = true;
+        const email = fbEmail.value.trim();
+        const rating = fbRating.value;
+        const comments = fbComments.value.trim();
+        try {
+          await postToGAS('feedback', {email, rating, comments});
+          fbOverlay.classList.add('ea-hidden');
+          resolve();
+        } catch (err) {
+          alert('No se pudo enviar el feedback. Reintentá.');
+          fbSubmit.disabled = false;
+        }
+      };
+      fbSkip.onclick = function(){
+        fbOverlay.classList.add('ea-hidden');
+        resolve();
+      };
+    });
+  }
+
+  // Si tu app tiene su propio "inicializador" que debería arrancar después del signup,
+  // Podés llamar a tu initApp() aquí después de overlay oculto. Ej:
+  // if (typeof initApp === 'function') initApp();
+
+})();
+</script>
 </body>
 </html>
