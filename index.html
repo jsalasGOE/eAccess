@@ -8,6 +8,44 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div id="form-container">
+  <!-- Formulario 1 -->
+  <form id="form1" style="display:block; padding: 20px; border: 1px solid #ccc; margin: 20px;">
+    <h3>Por favor, ingresa tus datos</h3>
+    <label>Nombre: <input type="text" id="nombre" required></label><br><br>
+    <label>Apellido: <input type="text" id="apellido" required></label><br><br>
+    <label>Email: <input type="email" id="email" required></label><br><br>
+    <button type="button" onclick="mostrarForm2()">Continuar</button>
+  </form>
+
+  <!-- Formulario 2 -->
+  <form id="form2" style="display:none; padding: 20px; border: 1px solid #ccc; margin: 20px;">
+    <h3>¿Cómo fue tu experiencia?</h3>
+    <label>Experiencia general:
+      <select id="experienciaGeneral" required>
+        <option value="">--Selecciona--</option>
+        <option value="Muy bien">Muy bien</option>
+        <option value="Bien">Bien</option>
+        <option value="Mal">Mal</option>
+        <option value="Muy mal">Muy mal</option>
+      </select>
+    </label><br><br>
+
+    <label>Facilidad de uso:
+      <select id="facilidadUso" required>
+        <option value="">--Selecciona--</option>
+        <option value="Muy bien">Muy bien</option>
+        <option value="Bien">Bien</option>
+        <option value="Mal">Mal</option>
+        <option value="Muy mal">Muy mal</option>
+      </select>
+    </label><br><br>
+
+    <button type="button" onclick="enviarTodo()">Enviar Feedback</button>
+  </form>
+
+  <div id="mensaje" style="display:none; margin-top:10px; color:green; padding: 10px; border: 1px solid #ccc;"></div>
+</div>
   <!-- Login -->
   <div id="loginContainer" class="container visible">
     <div class="login-header">
@@ -61,5 +99,64 @@
   <div id="toast" class="toast"></div>
 
   <script src="script.js"></script>
+  <script>
+  let datosUsuario = {};
+
+  function mostrarForm2() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const apellido = document.getElementById('apellido').value.trim();
+    const email = document.getElementById('email').value.trim();
+
+    if (!nombre || !apellido || !email) {
+      alert("Por favor completa todos los campos.");
+      return;
+    }
+
+    datosUsuario = { nombre, apellido, email };
+    document.getElementById('form1').style.display = 'none';
+    document.getElementById('form2').style.display = 'block';
+  }
+
+  function enviarTodo() {
+    const exp = document.getElementById('experienciaGeneral').value;
+    const facil = document.getElementById('facilidadUso').value;
+
+    if (!exp || !facil) {
+      alert("Por favor completa el feedback.");
+      return;
+    }
+
+    const payload = {
+      ...datosUsuario,
+      experienciaGeneral: exp,
+      facilidadUso: facil
+    };
+
+    // Reemplaza ESTA URL con la de tu despliegue de Google Apps Script
+    const scriptURL = "https://script.google.com/a/macros/goethemail.net/s/AKfycbzNuqOQ1wgtftT3r1FsAclsYIHJYqhjG5ZYv4NWRxjWdESvSJva6-tGr9PKXRQTjPyjwQ/execc";
+
+    fetch(scriptURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.result === "success") {
+        document.getElementById('form2').style.display = 'none';
+        document.getElementById('mensaje').innerText = "¡Gracias por tu feedback!";
+        document.getElementById('mensaje').style.display = 'block';
+      } else {
+        alert("Hubo un error al enviar los datos.");
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert("No se pudo enviar el formulario. Revisa la consola.");
+    });
+  }
+</script>
 </body>
 </html>
