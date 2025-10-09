@@ -8,60 +8,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="form-container">
-  <!-- Formulario 1 -->
-  <form id="form1" style="display:block; padding: 20px; border: 1px solid #ccc; margin: 20px;">
-    <h3>Por favor, ingresa tus datos</h3>
-    <label>Nombre: <input type="text" id="nombre" required></label><br><br>
-    <label>Apellido: <input type="text" id="apellido" required></label><br><br>
-    <label>Email: <input type="email" id="email" required></label><br><br>
-    <button type="button" onclick="mostrarForm2()">Continuar</button>
-  </form>
+    <!-- Popup de Identificación (si es necesario) -->
+    <div id="popupIdentificacion" class="popup-overlay">
+        <div class="popup-contenido">
+            <h2>Identificación de Usuario</h2>
+            <form id="userForm" class="formulario">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
 
-  <!-- Formulario 2 -->
-  <form id="form2" style="display:none; padding: 20px; border: 1px solid #ccc; margin: 20px;">
-    <h3>¿Cómo fue tu experiencia?</h3>
-    <label>Experiencia general:
-      <select id="experienciaGeneral" required>
-        <option value="">--Selecciona--</option>
-        <option value="Muy bien">Muy bien</option>
-        <option value="Bien">Bien</option>
-        <option value="Mal">Mal</option>
-        <option value="Muy mal">Muy mal</option>
-      </select>
-    </label><br><br>
+                <label for="apellido">Apellido:</label>
+                <input type="text" id="apellido" name="apellido" required>
 
-    <label>Facilidad de uso:
-      <select id="facilidadUso" required>
-        <option value="">--Selecciona--</option>
-        <option value="Muy bien">Muy bien</option>
-        <option value="Bien">Bien</option>
-        <option value="Mal">Mal</option>
-        <option value="Muy mal">Muy mal</option>
-      </select>
-    </label><br><br>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
 
-    <button type="button" onclick="enviarTodo()">Enviar Feedback</button>
-  </form>
-
-  <div id="mensaje" style="display:none; margin-top:10px; color:green; padding: 10px; border: 1px solid #ccc;"></div>
-</div>
-  <!-- Login -->
-  <div id="loginContainer" class="container visible">
-    <div class="login-header">
-      <h1>🏫 Goethe Schule</h1>
-      <h2>Sistema de Gestión de Aulas</h2>
+                <button type="button" onclick="guardarUsuario()">Continuar</button>
+            </form>
+        </div>
     </div>
-    <div class="login-form">
-      <input type="text" id="usuario" placeholder="Usuario" />
-      <input type="password" id="clave" placeholder="Contraseña" />
-      <button onclick="login()" class="btn-primary">
-        <span>🔐</span> Iniciar Sesión
-      </button>
-      <p id="error" class="error-message"></p>
-    </div>
-  </div>
-
   <!-- Selección de Islas -->
   <div id="islasContainer" class="container">
     <div class="header-section">
@@ -97,65 +61,37 @@
 
   <!-- Notification Toast -->
   <div id="toast" class="toast"></div>
+    <!-- Botón Flotante de Feedback -->
+    <button id="openFeedbackBtn" class="btn-feedback-float" title="Enviar Feedback">
+        <i class="fas fa-comment-alt"></i> <!-- Ícono opcional -->
+    </button>
 
+    <!-- Popup de Feedback -->
+    <div id="popupFeedback" class="popup-overlay" style="display: none;">
+        <div class="popup-contenido">
+            <h2>Feedback del Sistema</h2>
+            <form id="feedbackForm" class="formulario">
+                <label for="experienciaGeneral">Experiencia General:</label>
+                <select id="experienciaGeneral" name="experienciaGeneral" required>
+                    <option value="Muy Bien">Muy Bien</option>
+                    <option value="Bien">Bien</option>
+                    <option value="Mal">Mal</option>
+                    <option value="Muy Mal">Muy Mal</option>
+                </select>
+
+                <label for="facilidadUso">Facilidad de Uso:</label>
+                <select id="facilidadUso" name="facilidadUso" required>
+                    <option value="Muy Bien">Muy Bien</option>
+                    <option value="Bien">Bien</option>
+                    <option value="Mal">Mal</option>
+                    <option value="Muy Mal">Muy Mal</option>
+                </select>
+
+                <button type="button" onclick="guardarFeedback()">Enviar Feedback</button>
+                <button type="button" onclick="cerrarFeedback()">Cancelar</button>
+            </form>
+        </div>
+    </div>
   <script src="script.js"></script>
-  <script>
-  let datosUsuario = {};
-
-  function mostrarForm2() {
-    const nombre = document.getElementById('nombre').value.trim();
-    const apellido = document.getElementById('apellido').value.trim();
-    const email = document.getElementById('email').value.trim();
-
-    if (!nombre || !apellido || !email) {
-      alert("Por favor completa todos los campos.");
-      return;
-    }
-
-    datosUsuario = { nombre, apellido, email };
-    document.getElementById('form1').style.display = 'none';
-    document.getElementById('form2').style.display = 'block';
-  }
-
-  function enviarTodo() {
-    const exp = document.getElementById('experienciaGeneral').value;
-    const facil = document.getElementById('facilidadUso').value;
-
-    if (!exp || !facil) {
-      alert("Por favor completa el feedback.");
-      return;
-    }
-
-    const payload = {
-      ...datosUsuario,
-      experienciaGeneral: exp,
-      facilidadUso: facil
-    };
-
-    // Reemplaza ESTA URL con la de tu despliegue de Google Apps Script
-    const scriptURL = "https://script.google.com/a/macros/goethemail.net/s/AKfycbzNuqOQ1wgtftT3r1FsAclsYIHJYqhjG5ZYv4NWRxjWdESvSJva6-tGr9PKXRQTjPyjwQ/exec";
-    fetch(scriptURL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.result === "success") {
-        document.getElementById('form2').style.display = 'none';
-        document.getElementById('mensaje').innerText = "¡Gracias por tu feedback!";
-        document.getElementById('mensaje').style.display = 'block';
-      } else {
-        alert("Hubo un error al enviar los datos.");
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert("No se pudo enviar el formulario. Revisa la consola.");
-    });
-  }
-</script>
 </body>
 </html>

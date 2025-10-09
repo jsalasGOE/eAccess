@@ -357,3 +357,130 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('🏫 Sistema de Gestión de Aulas - Goethe Schule iniciado');
   Utils.showToast('Sistema iniciado correctamente', 'success');
 });
+// script.js
+
+// Variable global para almacenar la información del usuario
+let usuarioInfo = {};
+
+// Verificar si ya se completó la identificación al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. LEER: Verifica si la clave 'identificacionCompletada' existe en localStorage
+    const identificacionCompletada = localStorage.getItem('identificacionCompletada');
+
+    if (identificacionCompletada) {
+        // Si 'identificacionCompletada' es 'true' (o cualquier valor), significa que ya se completó
+        console.log("Identificación ya completada previamente.");
+
+        // Opcional: Recuperar la info del usuario si también la guardaste
+        const storedInfo = localStorage.getItem('usuarioInfo');
+        if (storedInfo) {
+            usuarioInfo = JSON.parse(storedInfo);
+            // Aquí puedes actualizar la UI con la info del usuario si es necesario
+            // Por ejemplo, mostrarlo en el header si tu sistema lo permite sin login completo
+            // document.getElementById('userDisplayName').textContent = `${usuarioInfo.nombre} ${usuarioInfo.apellido}`;
+            // document.getElementById('userInfo').style.display = 'block';
+        }
+
+        // 2. ACCIÓN: Ocultar el popup de identificación porque ya se completó
+        document.getElementById('popupIdentificacion').style.display = 'none';
+        // Mostrar el contenido principal (esto generalmente ya está visible, pero por si acaso)
+        // document.getElementById('contenidoPrincipal').style.display = 'block';
+    } else {
+        // Si 'identificacionCompletada' NO existe o es 'false', mostrar el popup
+        console.log("Mostrando popup de identificación.");
+        document.getElementById('popupIdentificacion').style.display = 'flex'; // O 'block', dependiendo de tu CSS
+        // Ocultar el contenido principal mientras se responde el popup (opcional, depende del diseño)
+        // document.getElementById('contenidoPrincipal').style.display = 'none';
+    }
+
+    // Conecta el botón flotante de feedback (esto va aquí dentro del DOMContentLoaded)
+    document.getElementById('openFeedbackBtn').addEventListener('click', abrirFeedback);
+});
+
+// Función para guardar la información del usuario y el estado en localStorage
+function guardarUsuario() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const apellido = document.getElementById('apellido').value.trim();
+    const email = document.getElementById('email').value.trim();
+
+    if (!nombre || !apellido || !email) {
+        alert("Por favor, completa todos los campos.");
+        return;
+    }
+
+    // Guarda la información en la variable global
+    usuarioInfo = { nombre, apellido, email };
+
+    // 3. GUARDAR: Guarda la información del usuario en localStorage
+    localStorage.setItem('usuarioInfo', JSON.stringify(usuarioInfo));
+
+    // 4. GUARDAR: Guarda el indicador de que la identificación se completó en localStorage
+    localStorage.setItem('identificacionCompletada', 'true'); // Podría ser cualquier valor, 'true' es claro
+
+    // 5. ACCIÓN: Oculta el popup de identificación después de guardar
+    document.getElementById('popupIdentificacion').style.display = 'none';
+
+    // Opcional: Mostrar el nombre del usuario en la interfaz principal si aplica
+    // document.getElementById('userDisplayName').textContent = `${nombre} ${apellido}`;
+    // document.getElementById('userInfo').style.display = 'block';
+}
+
+// --- El resto de tus funciones (abrirFeedback, cerrarFeedback, guardarFeedback, etc.) ---
+// Asegúrate de que guardarFeedback también use la info de usuarioInfo
+function guardarFeedback() {
+    const experiencia = document.getElementById('experienciaGeneral').value;
+    const facilidad = document.getElementById('facilidadUso').value;
+
+    // Verifica que la info del usuario esté disponible (debería estar si pasó el primer popup)
+    if (!usuarioInfo.nombre || !usuarioInfo.apellido || !usuarioInfo.email) {
+        alert("No se puede enviar feedback: Información de usuario no disponible.");
+        console.error("Información de usuario no encontrada:", usuarioInfo);
+        return;
+    }
+
+    // Datos a enviar, incluyendo la info del usuario
+    const datos = {
+        nombre: usuarioInfo.nombre,
+        apellido: usuarioInfo.apellido,
+        email: usuarioInfo.email,
+        experiencia_general: experiencia,
+        facilidad_uso: facilidad
+    };
+
+    // URL de tu Google Apps Script DESPLEGADO (la que me mostraste)
+    const scriptURL = 'https://script.google.com/a/macros/goethemail.net/s/AKfycbzNuqOQ1wgtftT3r1FsAclsYIHJYqhjG5ZYv4NWRxjWdESvSJva6-tGr9PKXRQTjPyjwQ/exec';
+
+    // Importante: Usar 'application/x-www-form-urlencoded' para enviar datos al script
+    // y 'no-cors' para evitar errores en GitHub Pages (aunque limita respuesta).
+    fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors', // Crucial para GitHub Pages -> Apps Script
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(datos) // Convierte el objeto JS en el formato adecuado
+    })
+    .then(response => {
+        // Con 'no-cors', no puedes leer la respuesta real del script.
+        // Pero si llega aquí, la solicitud se envió.
+        console.log('Solicitud de feedback enviada.');
+        alert('Feedback enviado. ¡Gracias por tu opinión!'); // Mensaje genérico
+        cerrarFeedback(); // Cierra el popup de feedback
+    })
+    .catch(error => {
+        console.error('Error al enviar feedback:', error);
+        alert('Hubo un error al enviar tu feedback. Inténtalo de nuevo más tarde.');
+    });
+}
+
+function abrirFeedback() {
+    document.getElementById('popupFeedback').style.display = 'flex'; // Mostrar popup feedback
+}
+
+function cerrarFeedback() {
+    document.getElementById('popupFeedback').style.display = 'none'; // Ocultar popup feedback
+}
+
+// --- Mantén tus otras funciones de lógica de aulas aquí ---
+// document.getElementById('loginButton').addEventListener(...);
+// etc.
