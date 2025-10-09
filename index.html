@@ -1,65 +1,198 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClassPass - Goethe Schule</title>
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #dfe9f3 0%, #ffffff 100%);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: white;
+      width: 90%;
+      max-width: 420px;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      display: none;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .visible {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-family: inherit;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2c7be5;
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #1b5ec4;
+    }
+
+    .error { color: red; }
+    .success { color: green; }
+    .logout-btn {
+      background: #e63946;
+    }
+
+    .logout-btn:hover {
+      background: #c72c39;
+    }
+  </style>
 </head>
 <body>
-  <!-- Login -->
-  <div id="loginContainer" class="container visible">
-    <div class="login-header">
-      <h1>🏫 Goethe Schule</h1>
-      <h2>Sistema de Gestión de Aulas</h2>
-    </div>
-    <div class="login-form">
-      <input type="text" id="usuario" placeholder="Usuario" />
-      <input type="password" id="clave" placeholder="Contraseña" />
-      <button onclick="login()" class="btn-primary">
-        <span>🔐</span> Iniciar Sesión
-      </button>
-      <p id="error" class="error-message"></p>
+
+  <!-- 🔹 Encuesta Inicial -->
+  <div id="betaSurvey" class="card visible">
+    <h2>🎓 Inscripción Beta Tester</h2>
+    <input id="nombreBeta" type="text" placeholder="Tu nombre completo">
+    <input id="emailBeta" type="email" placeholder="Correo electrónico">
+    <textarea id="motivoBeta" placeholder="¿Por qué querés participar?" rows="3"></textarea>
+    <button onclick="enviarEncuestaInicial()">Enviar y continuar</button>
+    <p id="msgBeta" class="success"></p>
+  </div>
+
+  <!-- 🔹 Login -->
+  <div id="loginContainer" class="card">
+    <h2>🏫 Goethe Schule</h2>
+    <h4>Sistema de Gestión de Aulas</h4>
+    <input id="usuario" type="text" placeholder="Usuario">
+    <input id="clave" type="password" placeholder="Contraseña">
+    <button onclick="login()">Iniciar Sesión</button>
+    <p id="error" class="error"></p>
+  </div>
+
+  <!-- 🔹 Islas -->
+  <div id="islasContainer" class="card">
+    <h2>🏝️ Selecciona una Isla</h2>
+    <p id="userWelcome"></p>
+    <div style="margin: 20px 0;">
+      <button onclick="mostrarEncuestaFinal()">📝 Enviar Feedback</button>
+      <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
     </div>
   </div>
 
-  <!-- Selección de Islas -->
-  <div id="islasContainer" class="container">
-    <div class="header-section">
-      <h2>🏝️ Selecciona una Isla</h2>
-      <div class="user-info">
-        <span id="userWelcome"></span>
-        <button onclick="logout()" class="btn-logout">🚪 Cerrar Sesión</button>
-      </div>
-    </div>
-    <div id="islas" class="grid-islas"></div>
+  <!-- 🔹 Encuesta Final -->
+  <div id="feedbackSurvey" class="card">
+    <h2>💬 Feedback Final</h2>
+    <textarea id="feedbackText" placeholder="Tu opinión sobre la app..." rows="4"></textarea>
+    <button onclick="enviarEncuestaFinal()">Enviar</button>
+    <p id="msgFeedback" class="success"></p>
   </div>
 
-  <!-- Mapa de Aulas -->
-  <div id="mapaContainer" class="container">
-    <div class="header-section">
-      <h2 id="islaNombre">Isla</h2>
-      <div class="controls">
-        <div id="teacherControls" class="teacher-controls" style="display: none;">
-          <button onclick="toggleAllAulas('abierta')" class="btn-success">
-            🟢 Abrir Todas
-          </button>
-          <button onclick="toggleAllAulas('cerrada')" class="btn-danger">
-            🔴 Cerrar Todas
-          </button>
-        </div>
-        <button class="btn-secondary back-btn" onclick="volverIslas()">
-          ⬅️ Volver a Islas
-        </button>
-      </div>
-    </div>
-    <div class="mapa-aulas" id="aulas"></div>
-  </div>
+  <script>
+    // ⚙️ Reemplazá con tu URL de Google Apps Script
+    const scriptURL = "https://script.google.com/macros/s/PEGÁ_TU_URL_AQUÍ/exec";
 
-  <!-- Notification Toast -->
-  <div id="toast" class="toast"></div>
+    function mostrar(id) {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('visible'));
+      document.getElementById(id).classList.add('visible');
+    }
 
-  <script src="script.js"></script>
+    // 📋 Enviar encuesta inicial
+    function enviarEncuestaInicial() {
+      const nombre = document.getElementById('nombreBeta').value.trim();
+      const email = document.getElementById('emailBeta').value.trim();
+      const motivo = document.getElementById('motivoBeta').value.trim();
+
+      if (!nombre || !email) {
+        alert("Por favor, completá todos los campos.");
+        return;
+      }
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ nombre, email, motivo, feedback: "" })
+      })
+      .then(() => {
+        document.getElementById('msgBeta').textContent = "¡Gracias! Ahora podés iniciar sesión.";
+        setTimeout(() => mostrar("loginContainer"), 1200);
+      })
+      .catch(() => alert("⚠️ Error al enviar los datos."));
+    }
+
+    // 🔐 Login básico
+    function login() {
+      const user = document.getElementById('usuario').value;
+      const pass = document.getElementById('clave').value;
+      const errorMsg = document.getElementById('error');
+
+      if (user === "admin" && pass === "1234") {
+        document.getElementById('userWelcome').textContent = `Bienvenido, ${user}`;
+        mostrar("islasContainer");
+      } else {
+        errorMsg.textContent = "Usuario o contraseña incorrectos.";
+      }
+    }
+
+    // 🚪 Logout
+    function logout() {
+      mostrar("loginContainer");
+    }
+
+    // 💬 Encuesta final
+    function mostrarEncuestaFinal() {
+      mostrar("feedbackSurvey");
+    }
+
+    function enviarEncuestaFinal() {
+      const feedback = document.getElementById('feedbackText').value.trim();
+
+      if (!feedback) {
+        alert("Por favor escribí tu feedback.");
+        return;
+      }
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ nombre: "", email: "", motivo: "", feedback })
+      })
+      .then(() => {
+        document.getElementById('msgFeedback').textContent = "¡Gracias por tu opinión!";
+        setTimeout(() => mostrar("loginContainer"), 1500);
+      })
+      .catch(() => alert("⚠️ Error al enviar feedback."));
+    }
+
+    window.onload = () => mostrar("betaSurvey");
+  </script>
 </body>
 </html>
