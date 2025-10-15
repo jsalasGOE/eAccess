@@ -151,7 +151,7 @@
   <script>
 (function(){
   // URL del Web App de Google Apps Script (reemplazar por la tuya)
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbxUnoXz0qvGpOv0dypgvMkUilsiUbSvEpkkJVDunAqDxxLnETudHUZDDCrrU0A1H1qUuA/exec"; // <- reemplaza
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbyhoaMhOjyxjcRYocNYRYwLJZFwkxRFFzf9Msx0Oz0uV2HLt1mUguQdbIEiXzHAgmnPsg/exec"; // <- reemplaza
 
   // Config: si true, solo pedir inscripción una vez por navegador (localStorage)
   const SHOW_SIGNUP_ONCE = true;
@@ -185,20 +185,34 @@
   showSignupIfNeeded();
 
   // Helper: POST a GAS
-  async function postToGAS(type, data) {
-    try {
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({type: type, data: data})
-      });
-      const j = await res.json();
-      return j;
-    } catch (err) {
-      console.error('Error enviando a GAS', err);
-      throw err;
+  // Reemplaza la función postToGAS original por esta
+async function postToGAS(type, data) {
+  try {
+    const payload = JSON.stringify({ type, data });
+    const params = new URLSearchParams();
+    params.append('payload', payload); // payload será recibido en e.parameter.payload en Apps Script
+
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: params // NO ponemos headers personalizados
+    });
+
+    const text = await res.text();
+    let parsed = null;
+    try { parsed = JSON.parse(text); } catch(e) { /* no JSON */ }
+
+    console.log('POST', GAS_URL, 'status', res.status, 'rawResponse', text);
+    if (!res.ok) {
+      throw new Error('HTTP ' + res.status + ' — ' + (parsed && parsed.message ? parsed.message : text));
     }
+    return parsed;
+  } catch (err) {
+    console.error('Error enviando a GAS:', err);
+    alert('Error al enviar: ' + err.message + '\nRevisá la consola (F12) para más detalles.');
+    throw err;
   }
+}
+
 
   // Envío de signup
   submitBtn.addEventListener('click', async function(){
