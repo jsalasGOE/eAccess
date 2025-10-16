@@ -6,101 +6,59 @@
   <title>ClassPass - Goethe Schule</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Añadido para el ícono del botón de feedback -->
 </head>
 <body>
-    <!-- Popup de Identificación (si es necesario) -->
-    <div id="popupIdentificacion" class="popup-overlay">
-        <div class="popup-contenido">
-            <h2>Identificación de Usuario</h2>
-            <form id="userForm" class="formulario">
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" name="nombre" required>
-
-                <label for="apellido">Apellido:</label>
-                <input type="text" id="apellido" name="apellido" required>
-
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-
-                <button type="button" onclick="guardarUsuario()">Continuar</button>
-            </form>
-        </div>
+  <!-- Login -->
+  <div id="loginContainer" class="container visible">
+    <div class="login-header">
+      <h1>🏫 Goethe Schule</h1>
+      <h2>Sistema de Gestión de Aulas</h2>
     </div>
-
-    <!-- Contenido Principal del Sistema de Aulas (oculto inicialmente si se muestra el popup) -->
-    <div id="contenidoPrincipalSistema"> <!-- Este contenedor es nuevo -->
-      <!-- Botón de Login (ejemplo, si lo usas para iniciar el flujo de selección) -->
-      <!-- <button id="loginButton" class="btn">Iniciar Sesión</button> -->
-
-      <!-- Selección de Islas -->
-      <div id="islasContainer" class="container">
-        <div class="header-section">
-          <h2>🏝️ Selecciona una Isla</h2>
-          <div class="user-info">
-            <span id="userWelcome"></span>
-            <button onclick="logout()" class="btn-logout">🚪 Cerrar Sesión</button>
-          </div>
-        </div>
-        <div id="islas" class="grid-islas"></div>
-      </div>
-
-      <!-- Mapa de Aulas -->
-      <div id="mapaContainer" class="container">
-        <div class="header-section">
-          <h2 id="islaNombre">Isla</h2>
-          <div class="controls">
-            <div id="teacherControls" class="teacher-controls" style="display: none;">
-              <button onclick="toggleAllAulas('abierta')" class="btn-success">
-                🟢 Abrir Todas
-              </button>
-              <button onclick="toggleAllAulas('cerrada')" class="btn-danger">
-                🔴 Cerrar Todas
-              </button>
-            </div>
-            <button class="btn-secondary back-btn" onclick="volverIslas()">
-              ⬅️ Volver a Islas
-            </button>
-          </div>
-        </div>
-        <div class="mapa-aulas" id="aulas"></div>
-      </div>
-    </div> <!-- Fin del contenedor principal -->
-
-    <!-- Notification Toast -->
-    <div id="toast" class="toast"></div>
-
-    <!-- Botón Flotante de Feedback -->
-    <button id="openFeedbackBtn" class="btn-feedback-float" title="Enviar Feedback">
-        <i class="fas fa-comment-alt"></i> <!-- Ícono opcional -->
-    </button>
-
-    <!-- Popup de Feedback -->
-    <div id="popupFeedback" class="popup-overlay" style="display: none;">
-        <div class="popup-contenido">
-            <h2>Feedback del Sistema</h2>
-            <form id="feedbackForm" class="formulario">
-                <label for="experienciaGeneral">Experiencia General:</label>
-                <select id="experienciaGeneral" name="experienciaGeneral" required>
-                    <option value="Muy Bien">Muy Bien</option>
-                    <option value="Bien">Bien</option>
-                    <option value="Mal">Mal</option>
-                    <option value="Muy Mal">Muy Mal</option>
-                </select>
-
-                <label for="facilidadUso">Facilidad de Uso:</label>
-                <select id="facilidadUso" name="facilidadUso" required>
-                    <option value="Muy Bien">Muy Bien</option>
-                    <option value="Bien">Bien</option>
-                    <option value="Mal">Mal</option>
-                    <option value="Muy Mal">Muy Mal</option>
-                </select>
-
-                <button type="button" onclick="guardarFeedback()">Enviar Feedback</button>
-                <button type="button" onclick="cerrarFeedback()">Cancelar</button>
-            </form>
-        </div>
+    <div class="login-form">
+      <input type="text" id="usuario" placeholder="Usuario" />
+      <input type="password" id="clave" placeholder="Contraseña" />
+      <button onclick="login()" class="btn-primary">
+        <span>🔐</span> Iniciar Sesión
+      </button>
+      <p id="error" class="error-message"></p>
     </div>
+  </div>
+
+  <!-- Selección de Islas -->
+  <div id="islasContainer" class="container">
+    <div class="header-section">
+      <h2>🏝️ Selecciona una Isla</h2>
+      <div class="user-info">
+        <span id="userWelcome"></span>
+        <button onclick="logout()" class="btn-logout">🚪 Cerrar Sesión</button>
+      </div>
+    </div>
+    <div id="islas" class="grid-islas"></div>
+  </div>
+
+  <!-- Mapa de Aulas -->
+  <div id="mapaContainer" class="container">
+    <div class="header-section">
+      <h2 id="islaNombre">Isla</h2>
+      <div class="controls">
+        <div id="teacherControls" class="teacher-controls" style="display: none;">
+          <button onclick="toggleAllAulas('abierta')" class="btn-success">
+            🟢 Abrir Todas
+          </button>
+          <button onclick="toggleAllAulas('cerrada')" class="btn-danger">
+            🔴 Cerrar Todas
+          </button>
+        </div>
+        <button class="btn-secondary back-btn" onclick="volverIslas()">
+          ⬅️ Volver a Islas
+        </button>
+      </div>
+    </div>
+    <div class="mapa-aulas" id="aulas"></div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast"></div>
 
   <script src="script.js"></script>
 </body>

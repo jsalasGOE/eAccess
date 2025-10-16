@@ -1,6 +1,4 @@
 // Configuración inicial
-let usuarioInfo = {}; // Variable global para almacenar la información del usuario (feedback)
-
 const CONFIG = {
   INACTIVITY_TIMEOUT: 60 * 1000, // 60 segundos
   TOAST_DURATION: 3000,
@@ -84,9 +82,9 @@ const Utils = {
   }
 };
 
-// Gestión de sesiones (adaptada para integrarse con el nuevo flujo)
+// Gestión de sesiones
 const SessionManager = {
-  // Iniciar sesión (mantenemos la lógica original)
+  // Iniciar sesión
   login() {
     const user = document.getElementById("usuario").value.trim();
     const pass = document.getElementById("clave").value.trim();
@@ -114,7 +112,7 @@ const SessionManager = {
     }
   },
 
-  // Cerrar sesión (mantenemos la lógica original)
+  // Cerrar sesión
   logout() {
     if (usuarioActivo) {
       Utils.showToast(`Hasta luego, ${usuarioActivo.nombre}`, 'info');
@@ -130,7 +128,7 @@ const SessionManager = {
     }, CONFIG.ANIMATION_DELAY);
   },
 
-  // Manejar inactividad (mantenemos la lógica original)
+  // Manejar inactividad
   resetInactivityTimer() {
     this.clearInactivityTimer();
     inactivityTimer = setTimeout(() => {
@@ -147,7 +145,7 @@ const SessionManager = {
   }
 };
 
-// Gestión de interfaces (mantenemos la lógica original)
+// Gestión de interfaces
 const UIManager = {
   // Mostrar pantalla específica
   mostrarPantalla(id) {
@@ -160,7 +158,7 @@ const UIManager = {
     }, 100);
   },
 
-  // Cargar grid de islas (mantenemos la lógica original)
+  // Cargar grid de islas
   cargarIslas() {
     const contenedor = document.getElementById("islas");
     contenedor.innerHTML = "";
@@ -195,7 +193,7 @@ const UIManager = {
     });
   },
 
-  // Cargar aulas de la isla seleccionada (mantenemos la lógica original)
+  // Cargar aulas de la isla seleccionada
   cargarAulas() {
     if (!islaSeleccionada) return;
     
@@ -222,7 +220,7 @@ const UIManager = {
     if (!tutorLeft) contenedor.appendChild(this.crearTutoria());
   },
 
-  // Crear elemento tutoría (mantenemos la lógica original)
+  // Crear elemento tutoría
   crearTutoria() {
     const div = document.createElement("div");
     div.className = "tutoria";
@@ -235,7 +233,7 @@ const UIManager = {
     return div;
   },
 
-  // Crear elemento aula (mantenemos la lógica original)
+  // Crear elemento aula
   crearAulaElemento(aula) {
     const div = document.createElement("div");
     div.className = `aula ${aula.estado}`;
@@ -266,7 +264,7 @@ const UIManager = {
   }
 };
 
-// Funciones de control masivo (mantenemos la lógica original)
+// Funciones de control masivo
 const ClassroomController = {
   // Abrir/cerrar todas las aulas
   toggleAllAulas(nuevoEstado) {
@@ -293,7 +291,7 @@ const ClassroomController = {
   }
 };
 
-// Funciones globales para mantener compatibilidad (mantenemos las originales)
+// Funciones globales para mantener compatibilidad
 function login() {
   SessionManager.login();
 }
@@ -325,167 +323,37 @@ function toggleAllAulas(estado) {
   ClassroomController.toggleAllAulas(estado);
 }
 
-// --- NUEVO: Funciones para manejar los popups y feedback ---
-function guardarUsuario() {
-    const nombre = document.getElementById('nombre').value.trim();
-    const apellido = document.getElementById('apellido').value.trim();
-    const email = document.getElementById('email').value.trim();
-
-    if (!nombre || !apellido || !email) {
-        alert("Por favor, completa todos los campos.");
-        return;
-    }
-
-    // Guarda la información en la variable global
-    usuarioInfo = { nombre, apellido, email };
-
-    // Guarda la información y el estado de completado en localStorage
-    localStorage.setItem('usuarioInfo', JSON.stringify(usuarioInfo));
-    localStorage.setItem('identificacionCompletada', 'true');
-
-    // Oculta el popup de identificación
-    document.getElementById('popupIdentificacion').style.display = 'none'; // Oculta el popup
-
-    // MUESTRA el contenedor principal del sistema de aulas
-    document.getElementById('contenidoPrincipalSistema').style.display = 'block'; // Muestra el contenido principal
-
-    // Opcional: Actualiza la UI con la info del usuario si aplica
-    document.getElementById('userWelcome').textContent = `Hola ${nombre} ${apellido}`;
-    // document.getElementById('userInfo').style.display = 'block'; // Si usas este ID en lugar de userWelcome
-}
-
-function abrirFeedback() {
-    document.getElementById('popupFeedback').style.display = 'flex'; // Mostrar popup feedback
-}
-
-function cerrarFeedback() {
-    document.getElementById('popupFeedback').style.display = 'none'; // Ocultar popup feedback
-}
-
-function guardarFeedback() {
-    const experiencia = document.getElementById('experienciaGeneral').value;
-    const facilidad = document.getElementById('facilidadUso').value;
-
-    // Verifica que la info del usuario esté disponible (debería estar si pasó el primer popup)
-    if (!usuarioInfo.nombre || !usuarioInfo.apellido || !usuarioInfo.email) {
-        alert("No se puede enviar feedback: Información de usuario no disponible.");
-        console.error("Información de usuario no encontrada:", usuarioInfo);
-        return;
-    }
-
-    // Datos a enviar, incluyendo la info del usuario
-    const datos = {
-        nombre: usuarioInfo.nombre,
-        apellido: usuarioInfo.apellido,
-        email: usuarioInfo.email,
-        experiencia_general: experiencia,
-        facilidad_uso: facilidad
-    };
-
-    // URL de tu Google Apps Script DESPLEGADO (la que me mostraste)
-    const scriptURL = 'https://script.google.com/a/macros/goethemail.net/s/AKfycbzNuqOQ1wgtftT3r1FsAclsYIHJYqhjG5ZYv4NWRxjWdESvSJva6-tGr9PKXRQTjPyjwQ/exec  ';
-
-    // Importante: Usar 'application/x-www-form-urlencoded' para enviar datos al script
-    // y 'no-cors' para evitar errores en GitHub Pages (aunque limita respuesta).
-    fetch(scriptURL, {
-        method: 'POST',
-        mode: 'no-cors', // Crucial para GitHub Pages -> Apps Script
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(datos) // Convierte el objeto JS en el formato adecuado
-    })
-    .then(response => {
-        // Con 'no-cors', no puedes leer la respuesta real del script.
-        // Pero si llega aquí, la solicitud se envió.
-        console.log('Solicitud de feedback enviada.');
-        alert('Feedback enviado. ¡Gracias por tu opinión!'); // Mensaje genérico
-        cerrarFeedback(); // Cierra el popup de feedback
-    })
-    .catch(error => {
-        console.error('Error al enviar feedback:', error);
-        alert('Hubo un error al enviar tu feedback. Inténtalo de nuevo más tarde.');
-    });
-}
-// --- Fin de las nuevas funciones ---
-
-
 // Inicialización y eventos
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar si ya se completó la identificación al cargar la página
-    const identificacionCompletada = localStorage.getItem('identificacionCompletada');
-
-    if (identificacionCompletada) {
-        // Si 'identificacionCompletada' es 'true', significa que ya se completó
-        console.log("Identificación ya completada previamente.");
-
-        // Recuperar la info del usuario si también la guardaste
-        const storedInfo = localStorage.getItem('usuarioInfo');
-        if (storedInfo) {
-            usuarioInfo = JSON.parse(storedInfo);
-        }
-
-        // Ocultar el popup de identificación
-        document.getElementById('popupIdentificacion').style.display = 'none';
-        // MOSTRAR el contenedor principal del sistema de aulas
-        document.getElementById('contenidoPrincipalSistema').style.display = 'block'; // Asegúrate de que este ID coincida con tu HTML
-
-        // Opcional: Actualizar UI del usuario (ej: mostrar nombre en userWelcome)
-        if (storedInfo) { // Si recuperamos info, actualizamos el nombre
-             const parsedInfo = JSON.parse(storedInfo);
-             document.getElementById('userWelcome').textContent = `Hola ${parsedInfo.nombre} ${parsedInfo.apellido}`;
-        }
-
-    } else {
-        // Si 'identificacionCompletada' NO existe, mostrar el popup de identificación
-        console.log("Mostrando popup de identificación.");
-        document.getElementById('popupIdentificacion').style.display = 'flex'; // O 'block', dependiendo de tu CSS
-        // Asegurar que el contenedor principal del sistema esté oculto mientras se responde el popup
-        document.getElementById('contenidoPrincipalSistema').style.display = 'none'; // Asegúrate de que este ID coincida con tu HTML
+  // Eventos de teclado
+  document.getElementById('usuario').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      document.getElementById('clave').focus();
     }
+  });
 
-    // Conecta el botón flotante de feedback
-    document.getElementById('openFeedbackBtn').addEventListener('click', abrirFeedback);
+  document.getElementById('clave').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      login();
+    }
+  });
 
-    // --- Código original que se ejecutaba en DOMContentLoaded ---
-    // Eventos de teclado
-    document.getElementById('usuario').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-        document.getElementById('clave').focus();
-        }
-    });
+  // Limpiar campos al enfocar
+  document.getElementById('usuario').addEventListener('focus', function() {
+    document.getElementById('error').innerText = '';
+  });
 
-    document.getElementById('clave').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-        login();
-        }
-    });
+  // Eventos que reinician el temporizador de inactividad
+  const resetEvents = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'];
+  resetEvents.forEach(evento => {
+    document.addEventListener(evento, () => {
+      if (usuarioActivo) {
+        SessionManager.resetInactivityTimer();
+      }
+    }, { passive: true });
+  });
 
-    // Limpiar campos al enfocar
-    document.getElementById('usuario').addEventListener('focus', function() {
-        document.getElementById('error').innerText = '';
-    });
-
-    // Eventos que reinician el temporizador de inactividad
-    const resetEvents = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'];
-    resetEvents.forEach(evento => {
-        document.addEventListener(evento, () => {
-        if (usuarioActivo) {
-            SessionManager.resetInactivityTimer();
-        }
-        }, { passive: true });
-    });
-
-    // Inicialización general (mensaje de consola y toast)
-    console.log('🏫 Sistema de Gestión de Aulas - Goethe Schule iniciado');
-    Utils.showToast('Sistema iniciado correctamente', 'success');
-
-    // Mostrar la pantalla de login ORIGINAL solo si NO se completó la identificación
-    // y si tu sistema original requiere un login después de la identificación.
-    // Si el flujo es directo al sistema de aulas después de la identificación,
-    // esta línea no sería necesaria aquí dentro del 'else'.
-    // if (!identificacionCompletada) {
-    //     mostrarPantalla("loginContainer"); // Descomentar si es necesario mostrar login después de identificación
-    // }
-    // --- Fin del código original ---
+  // Inicialización
+  console.log('🏫 Sistema de Gestión de Aulas - Goethe Schule iniciado');
+  Utils.showToast('Sistema iniciado correctamente', 'success');
 });
