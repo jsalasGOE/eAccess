@@ -1,198 +1,241 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClassPass - Goethe Schule</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Montserrat', sans-serif;
-      background: linear-gradient(135deg, #dfe9f3 0%, #ffffff 100%);
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .card {
-      background: white;
-      width: 90%;
-      max-width: 420px;
-      padding: 30px;
-      border-radius: 18px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      text-align: center;
-      display: none;
-      animation: fadeIn 0.4s ease-in-out;
-    }
-
-    .visible {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-family: inherit;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #2c7be5;
-      color: white;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      background: #1b5ec4;
-    }
-
-    .error { color: red; }
-    .success { color: green; }
-    .logout-btn {
-      background: #e63946;
-    }
-
-    .logout-btn:hover {
-      background: #c72c39;
-    }
-  </style>
+/* Modal overlay */
+.ea-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); display:flex;
+  align-items:center; justify-content:center; z-index:9999;
+}
+.ea-card {
+  background: white; border-radius:12px; padding:20px; width: 92%; max-width:480px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3); font-family: Arial, sans-serif;
+}
+.ea-card h2 { margin:0 0 8px 0; font-size:1.25rem; }
+.ea-row { margin:8px 0; display:flex; flex-direction:column; }
+.ea-row label { font-size:0.85rem; margin-bottom:4px; }
+.ea-row input, .ea-row textarea, .ea-row select {
+  padding:8px; border-radius:6px; border:1px solid #ccc; font-size:1rem;
+}
+.ea-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+.ea-btn { padding:8px 12px; border-radius:8px; border: none; cursor:pointer; }
+.ea-btn.primary { background:#2b6cb0; color:white; }
+.ea-btn.ghost { background:transparent; border:1px solid #aaa; }
+.ea-small { font-size:0.85rem; color:#555; }
+.ea-hidden { display:none !important; }
+</style>
 </head>
 <body>
+  <div id="ea-signup-overlay" class="ea-overlay">
+    <div class="ea-card" role="dialog" aria-modal="true" aria-labelledby="ea-signup-title">
+      <h2 id="ea-signup-title">Inscribite como Beta-tester</h2>
+      <p class="ea-small">Antes de usar la aplicación, completá este formulario para participar del beta.</p>
 
-  <!-- 🔹 Encuesta Inicial -->
-  <div id="betaSurvey" class="card visible">
-    <h2>🎓 Inscripción Beta Tester</h2>
-    <input id="nombreBeta" type="text" placeholder="Tu nombre completo">
-    <input id="emailBeta" type="email" placeholder="Correo electrónico">
-    <textarea id="motivoBeta" placeholder="¿Por qué querés participar?" rows="3"></textarea>
-    <button onclick="enviarEncuestaInicial()">Enviar y continuar</button>
-    <p id="msgBeta" class="success"></p>
-  </div>
+      <div class="ea-row">
+        <label>Nombre</label>
+        <input id="ea-nombre" type="text" placeholder="Nombre">
+      </div>
+      <div class="ea-row">
+        <label>Apellido</label>
+        <input id="ea-apellido" type="text" placeholder="Apellido">
+      </div>
+      <div class="ea-row">
+        <label>Correo electrónico</label>
+        <input id="ea-email" type="email" placeholder="tu@ejemplo.com">
+      </div>
 
-  <!-- 🔹 Login -->
-  <div id="loginContainer" class="card">
-    <h2>🏫 Goethe Schule</h2>
-    <h4>Sistema de Gestión de Aulas</h4>
-    <input id="usuario" type="text" placeholder="Usuario">
-    <input id="clave" type="password" placeholder="Contraseña">
-    <button onclick="login()">Iniciar Sesión</button>
-    <p id="error" class="error"></p>
-  </div>
+      <div class="ea-row">
+        <label>Comentarios (opcional)</label>
+        <textarea id="ea-extra" rows="3" placeholder="¿desde qué aula, observaciones... (opcional)?"></textarea>
+      </div>
 
-  <!-- 🔹 Islas -->
-  <div id="islasContainer" class="card">
-    <h2>🏝️ Selecciona una Isla</h2>
-    <p id="userWelcome"></p>
-    <div style="margin: 20px 0;">
-      <button onclick="mostrarEncuestaFinal()">📝 Enviar Feedback</button>
-      <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+      <div class="ea-actions">
+        <button id="ea-skip" class="ea-btn ghost">Cerrar</button>
+        <button id="ea-submit-signup" class="ea-btn primary">Enviar e ingresar</button>
+      </div>
+
+      <p class="ea-small" style="margin-top:8px">Al enviar, aceptás participar como beta-tester. Podés cerrar sin enviar si no querés.</p>
     </div>
   </div>
 
-  <!-- 🔹 Encuesta Final -->
-  <div id="feedbackSurvey" class="card">
-    <h2>💬 Feedback Final</h2>
-    <textarea id="feedbackText" placeholder="Tu opinión sobre la app..." rows="4"></textarea>
-    <button onclick="enviarEncuestaFinal()">Enviar</button>
-    <p id="msgFeedback" class="success"></p>
+  <!-- Feedback overlay -->
+  <div id="ea-feedback-overlay" class="ea-overlay ea-hidden">
+    <div class="ea-card" role="dialog" aria-modal="true" aria-labelledby="ea-feedback-title">
+      <h2 id="ea-feedback-title">Feedback de la prueba</h2>
+      <p class="ea-small">Gracias por probar la aplicación. Contanos tu experiencia.</p>
+
+      <div class="ea-row">
+        <label>Correo (opcional)</label>
+        <input id="fb-email" type="email" placeholder="tu@ejemplo.com">
+      </div>
+      <div class="ea-row">
+        <label>Puntuación (1-5)</label>
+        <select id="fb-rating">
+          <option value="">--</option>
+          <option value="1">1 — Muy mala</option>
+          <option value="2">2 — Mala</option>
+          <option value="3">3 — Regular</option>
+          <option value="4">4 — Buena</option>
+          <option value="5">5 — Excelente</option>
+        </select>
+      </div>
+      <div class="ea-row">
+        <label>Comentarios</label>
+        <textarea id="fb-comments" rows="4" placeholder="Qué funcionó, qué no, sugerencias..."></textarea>
+      </div>
+
+      <div class="ea-actions">
+        <button id="fb-skip" class="ea-btn ghost">Saltar</button>
+        <button id="fb-submit" class="ea-btn primary">Enviar feedback</button>
+      </div>
+    </div>
   </div>
 
+  <!-- Login -->
+  <div id="loginContainer" class="container visible">
+    <div class="login-header">
+      <h1>🏫 Goethe Schule</h1>
+      <h2>Sistema de Gestión de Aulas</h2>
+    </div>
+    <div class="login-form">
+      <input type="text" id="usuario" placeholder="Usuario" />
+      <input type="password" id="clave" placeholder="Contraseña" />
+      <button onclick="login()" class="btn-primary">
+        <span>🔐</span> Iniciar Sesión
+      </button>
+      <p id="error" class="error-message"></p>
+    </div>
+  </div>
+
+  <!-- Selección de Islas -->
+  <div id="islasContainer" class="container">
+    <div class="header-section">
+      <h2>🏝️ Selecciona una Isla</h2>
+      <div class="user-info">
+        <span id="userWelcome"></span>
+        <button onclick="logout()" class="btn-logout">🚪 Cerrar Sesión</button>
+      </div>
+    </div>
+    <div id="islas" class="grid-islas"></div>
+  </div>
+
+  <!-- Mapa de Aulas -->
+  <div id="mapaContainer" class="container">
+    <div class="header-section">
+      <h2 id="islaNombre">Isla</h2>
+      <div class="controls">
+        <div id="teacherControls" class="teacher-controls" style="display: none;">
+          <button onclick="toggleAllAulas('abierta')" class="btn-success">
+            🟢 Abrir Todas
+          </button>
+          <button onclick="toggleAllAulas('cerrada')" class="btn-danger">
+            🔴 Cerrar Todas
+          </button>
+        </div>
+        <button class="btn-secondary back-btn" onclick="volverIslas()">
+          ⬅️ Volver a Islas
+        </button>
+      </div>
+    </div>
+    <div class="mapa-aulas" id="aulas"></div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="script.js"></script>
   <script>
-    // ⚙️ Reemplazá con tu URL de Google Apps Script
-    const scriptURL = "https://script.google.com/macros/s/PEGÁ_TU_URL_AQUÍ/exec";
+  (function(){
+    // ✅ URL CORRECTA SIN ESPACIOS
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwOCdIns0fARzltZb6bZUw6mcHVGy46OS5DovcgvwTqHNu6iJG-iM6YxgUmYivybGtzRQ/exec";
 
-    function mostrar(id) {
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('visible'));
-      document.getElementById(id).classList.add('visible');
-    }
+    const overlay = document.getElementById('ea-signup-overlay');
+    const fbOverlay = document.getElementById('ea-feedback-overlay');
 
-    // 📋 Enviar encuesta inicial
-    function enviarEncuestaInicial() {
-      const nombre = document.getElementById('nombreBeta').value.trim();
-      const email = document.getElementById('emailBeta').value.trim();
-      const motivo = document.getElementById('motivoBeta').value.trim();
+    overlay.style.display = 'flex';
 
-      if (!nombre || !email) {
-        alert("Por favor, completá todos los campos.");
+    // --- ENVIAR BETA ---
+    document.getElementById('ea-submit-signup').addEventListener('click', async () => {
+      const nombre = document.getElementById('ea-nombre').value.trim();
+      const apellido = document.getElementById('ea-apellido').value.trim();
+      const email = document.getElementById('ea-email').value.trim();
+      const extra = document.getElementById('ea-extra').value.trim();
+
+      if (!nombre || !apellido || !email) {
+        alert('Por favor completá nombre, apellido y correo.');
         return;
       }
 
-      fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ nombre, email, motivo, feedback: "" })
-      })
-      .then(() => {
-        document.getElementById('msgBeta').textContent = "¡Gracias! Ahora podés iniciar sesión.";
-        setTimeout(() => mostrar("loginContainer"), 1200);
-      })
-      .catch(() => alert("⚠️ Error al enviar los datos."));
-    }
+      const params = new URLSearchParams();
+      params.append('nombre', `${nombre} ${apellido}`);
+      params.append('email', email);
+      params.append('feedback', extra); // comentarios del beta van en "feedback"
+      params.append('rating', '');
 
-    // 🔐 Login básico
-    function login() {
-      const user = document.getElementById('usuario').value;
-      const pass = document.getElementById('clave').value;
-      const errorMsg = document.getElementById('error');
-
-      if (user === "admin" && pass === "1234") {
-        document.getElementById('userWelcome').textContent = `Bienvenido, ${user}`;
-        mostrar("islasContainer");
-      } else {
-        errorMsg.textContent = "Usuario o contraseña incorrectos.";
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', body: params });
+        const data = await res.json();
+        if (data.status === 'success') {
+          localStorage.setItem('ea_beta_signed', '1');
+          overlay.style.display = 'none';
+        } else {
+          throw new Error(data.message || 'Error al guardar');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error al enviar. Revisá la consola (F12).');
       }
+    });
+
+    document.getElementById('ea-skip').addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+
+    // --- FEEDBACK AL CERRAR SESIÓN ---
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        fbOverlay.classList.remove('ea-hidden');
+      });
     }
 
-    // 🚪 Logout
-    function logout() {
-      mostrar("loginContainer");
-    }
+    document.getElementById('fb-submit').addEventListener('click', async () => {
+      const email = document.getElementById('fb-email').value.trim();
+      const rating = document.getElementById('fb-rating').value;
+      const comments = document.getElementById('fb-comments').value.trim();
 
-    // 💬 Encuesta final
-    function mostrarEncuestaFinal() {
-      mostrar("feedbackSurvey");
-    }
+      const params = new URLSearchParams();
+      params.append('nombre', 'Feedback');
+      params.append('email', email);
+      params.append('feedback', comments);
+      params.append('rating', rating || '');
 
-    function enviarEncuestaFinal() {
-      const feedback = document.getElementById('feedbackText').value.trim();
-
-      if (!feedback) {
-        alert("Por favor escribí tu feedback.");
-        return;
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', body: params });
+        const data = await res.json();
+        if (data.status === 'success') {
+          fbOverlay.classList.add('ea-hidden');
+          window.location.reload();
+        } else {
+          throw new Error(data.message || 'Error en feedback');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('❌ No se pudo enviar el feedback.');
       }
+    });
 
-      fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ nombre: "", email: "", motivo: "", feedback })
-      })
-      .then(() => {
-        document.getElementById('msgFeedback').textContent = "¡Gracias por tu opinión!";
-        setTimeout(() => mostrar("loginContainer"), 1500);
-      })
-      .catch(() => alert("⚠️ Error al enviar feedback."));
-    }
-
-    window.onload = () => mostrar("betaSurvey");
+    document.getElementById('fb-skip').addEventListener('click', () => {
+      fbOverlay.classList.add('ea-hidden');
+      window.location.reload();
+    });
+  })();
   </script>
 </body>
 </html>
